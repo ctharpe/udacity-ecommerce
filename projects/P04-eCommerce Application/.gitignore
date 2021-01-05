@@ -1,6 +1,9 @@
 HELP.md
 target/
 
+### JAVA ###
+.java
+
 ### STS ###
 .apt_generated
 .classpath
