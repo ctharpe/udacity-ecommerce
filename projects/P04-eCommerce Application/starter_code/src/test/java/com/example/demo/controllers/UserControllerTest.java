@@ -12,6 +12,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
+import java.util.Optional;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.mock;
@@ -23,6 +25,10 @@ public class UserControllerTest {
     private UserRepository userRepository = mock(UserRepository.class);
     private CartRepository cartRepository = mock(CartRepository.class);
     private BCryptPasswordEncoder encoder = mock(BCryptPasswordEncoder.class);
+
+    private static User user;
+    private static String USER_NAME = "testUser";
+    private static Long USER_ID = 1L;
 
     @Before
     public void setup () {
@@ -52,4 +58,36 @@ public class UserControllerTest {
         assertEquals("thisIsHashed", user.getPassword());
     }
 
+    @Test
+    public void find_by_user_name() {
+        user = new User();
+        user.setId(USER_ID);
+        user.setUsername(USER_NAME);
+
+        when(userRepository.findByUsername(USER_NAME)).thenReturn(user);
+
+        final ResponseEntity<User> response = userController.findByUserName(USER_NAME);
+        assertNotNull(response);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+
+        User returnedUser = response.getBody();
+        assertEquals(user.getUsername(), returnedUser.getUsername());
+    }
+
+    @Test
+    public void find_by_id() {
+        user = new User();
+        user.setId(USER_ID);
+        user.setUsername(USER_NAME);
+
+        when(userRepository.findById(USER_ID)).thenReturn(Optional.of(user));
+
+        final ResponseEntity<User> response = userController.findById(USER_ID);
+        assertNotNull(response);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+
+        User returnedUser = response.getBody();
+        assertEquals(user.getUsername(), returnedUser.getUsername());
+
+    }
 }
