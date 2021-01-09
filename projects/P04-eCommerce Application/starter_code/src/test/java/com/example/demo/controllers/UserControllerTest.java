@@ -50,6 +50,6 @@ public class UserControllerTest {
         assertEquals(0, user.getId());
         assertEquals("test", user.getUsername());
         assertEquals("thisIsHashed", user.getPassword());
-
     }
+
 }
