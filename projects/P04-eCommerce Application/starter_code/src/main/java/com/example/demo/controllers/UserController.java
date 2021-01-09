@@ -38,6 +38,10 @@ public class UserController {
 
 	@GetMapping("/id/{id}")
 	public ResponseEntity<User> findById(@PathVariable Long id) {
+
+		System.out.println("Inside UserController findById.");
+		System.out.println("Id:" + id);
+
 		return ResponseEntity.of(userRepository.findById(id));
 	}
 	

@@ -52,10 +52,20 @@ public class CartController {
 	@PostMapping("/removeFromCart")
 	public ResponseEntity<Cart> removeFromcart(@RequestBody ModifyCartRequest request) {
 		User user = userRepository.findByUsername(request.getUsername());
+
+		System.out.println("Inside CartController.removeFromCart:");
+		System.out.println("User: " + user.getId());
+
 		if(user == null) {
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
 		}
 		Optional<Item> item = itemRepository.findById(request.getItemId());
+
+		//System.out.println("Item: " + item.get().getName());
+		System.out.println("Item id: " + request.getItemId());
+
+		System.out.println("Request: " + request.toString());
+
 		if(!item.isPresent()) {
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
 		}
