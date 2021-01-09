@@ -13,6 +13,8 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Order;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -25,6 +27,11 @@ import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+
+import org.junit.jupiter.api.TestMethodOrder;
+import org.junit.jupiter.api.MethodOrderer.OrderAnnotation;
+
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class CartControllerTest {
     private static CartController cartController;
     private static UserRepository userRepository = mock(UserRepository.class);
@@ -64,12 +71,14 @@ public class CartControllerTest {
         item.setName(USER_NAME);
         item.setDescription(DESCRIPTION);
         item.setPrice(PRICE);
+
+        when(userRepository.findByUsername(USER_NAME)).thenReturn(user);
+        when(itemRepository.findById(ITEM_ID)).thenReturn(Optional.of(item));
     }
 
     @Test
+    @Order(1)
     public void add_to_cart_happy_path() {
-        when(userRepository.findByUsername(USER_NAME)).thenReturn(user);
-        when(itemRepository.findById(ITEM_ID)).thenReturn(Optional.of(item));
         ModifyCartRequest cartRequest = new ModifyCartRequest();
         cartRequest.setItemId(item.getId());
         cartRequest.setQuantity(QUANTITY);
@@ -82,5 +91,20 @@ public class CartControllerTest {
         BigDecimal quantity = new BigDecimal(QUANTITY);
         assertEquals(user.getCart().getTotal(), quantity.multiply(PRICE));
         assertEquals(user.getCart().getItems().size(), QUANTITY);
+    }
+
+    @Test
+    @Order(2)
+    public void remove_from_cart_happy() {
+        ModifyCartRequest cartRequest = new ModifyCartRequest();
+        cartRequest.setItemId(item.getId());
+        cartRequest.setUsername(USER_NAME);
+        user.getCart().removeItem(item);
+        final ResponseEntity<Cart> response = cartController.removeFromcart(cartRequest);
+
+        assertNotNull(response);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(user.getCart().getTotal(), new BigDecimal(10.0));
+        assertEquals(user.getCart().getItems().size(), 1);
     }
 }
