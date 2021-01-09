@@ -58,6 +58,7 @@ public class CartControllerTest {
         cart = new Cart();
         cart.setTotal(new BigDecimal(0.0));
 
+
         user = new User();
         user.setId(USER_ID);
         user.setUsername(USER_NAME);

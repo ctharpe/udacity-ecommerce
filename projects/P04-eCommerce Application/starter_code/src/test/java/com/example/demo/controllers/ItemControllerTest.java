@@ -52,6 +52,18 @@ public class ItemControllerTest {
         itemList.add(item);
 
         when(itemRepository.findByName(ITEM_NAME)).thenReturn(itemList);
+        when(itemRepository.findAll()).thenReturn(itemList);
+    }
+
+    @Test
+    public void get_items() {
+        final ResponseEntity<List<Item>> response = itemController.getItems();
+        assertNotNull(response);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        List<Item> foundItemList = response.getBody();
+        assertEquals(itemList.size(), foundItemList.size());
+        Item foundItem = foundItemList.get(0);
+        assertEquals(item.getName(), foundItem.getName());
     }
 
     @Test
@@ -60,7 +72,7 @@ public class ItemControllerTest {
         assertNotNull(response);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         Item foundItem = response.getBody();
-        assertEquals(foundItem.getId(), item.getId());
+        assertEquals(item.getId(), foundItem.getId());
     }
 
     @Test
@@ -68,13 +80,11 @@ public class ItemControllerTest {
         final ResponseEntity<List<Item>> response = itemController.getItemsByName(ITEM_NAME);
         assertNotNull(response);
         assertEquals(HttpStatus.OK, response.getStatusCode());
-
         List<Item> foundItemList = response.getBody();
-
-        assertEquals(foundItemList.size(), itemList.size());
-
+        assertEquals(itemList.size(), foundItemList.size());
         Item foundItem = foundItemList.get(0);
         assertEquals(item.getName(), foundItem.getName());
-
     }
+
+
 }
