@@ -4,6 +4,10 @@ target/
 ### JAVA ###
 *.class
 
+### LOG FILES ###
+*.log
+eCommerce.log*
+
 ### STS ###
 .apt_generated
 .classpath

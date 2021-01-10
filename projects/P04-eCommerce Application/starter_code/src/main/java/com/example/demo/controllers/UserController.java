@@ -2,6 +2,7 @@ package com.example.demo.controllers;
 
 import java.util.Optional;
 
+import com.example.demo.exceptions.UserNotCreatedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,10 +39,6 @@ public class UserController {
 
 	@GetMapping("/id/{id}")
 	public ResponseEntity<User> findById(@PathVariable Long id) {
-
-		System.out.println("Inside UserController findById.");
-		System.out.println("Id:" + id);
-
 		return ResponseEntity.of(userRepository.findById(id));
 	}
 	
@@ -59,8 +56,6 @@ public class UserController {
 		cartRepository.save(cart);
 		user.setCart(cart);
 
-		log.info("Username: " + user.getUsername());
-
 		if(createUserRequest.getPassword().length() < 7 ||
 				!createUserRequest.getPassword().equals(createUserRequest.getConfirmPassword())) {
 			 log.error("Error with user password. Cannot create user{}", createUserRequest.getUsername());
@@ -69,7 +64,15 @@ public class UserController {
 
 		user.setPassword(bCryptPasswordEncoder.encode(createUserRequest.getPassword()));
 
-		userRepository.save(user);
+		try {
+			userRepository.save(user);
+			log.info("User created: " + user.getUsername());
+		}
+		catch (Exception e) {
+			String message = "Failed to create user " + user.getUsername() + " :";
+			log.error(message + e);
+			throw(new UserNotCreatedException(message));
+		}
 		return ResponseEntity.ok(user);
 	}
 	

@@ -2,6 +2,10 @@ package com.example.demo.controllers;
 
 import java.util.List;
 
+import com.example.demo.exceptions.CouldNotRetrieveOrderHistoryException;
+import com.example.demo.exceptions.CouldNotSaveOrderException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -27,16 +31,26 @@ public class OrderController {
 	
 	@Autowired
 	private OrderRepository orderRepository;
+
+	final Logger log = LoggerFactory.getLogger(UserController.class);
 	
 	
 	@PostMapping("/submit/{username}")
 	public ResponseEntity<UserOrder> submit(@PathVariable String username) {
 		User user = userRepository.findByUsername(username);
 		if(user == null) {
+			log.error("User " + username + " not found.");
 			return ResponseEntity.notFound().build();
 		}
 		UserOrder order = UserOrder.createFromCart(user.getCart());
-		orderRepository.save(order);
+		try {
+			orderRepository.save(order);
+		}
+		catch(Exception e) {
+			String message = "Could not save order: ";
+			log.error(message + e);
+			throw new CouldNotSaveOrderException(message);
+		}
 		return ResponseEntity.ok(order);
 	}
 	
@@ -44,8 +58,20 @@ public class OrderController {
 	public ResponseEntity<List<UserOrder>> getOrdersForUser(@PathVariable String username) {
 		User user = userRepository.findByUsername(username);
 		if(user == null) {
+			log.error("User " + username + " not found.");
 			return ResponseEntity.notFound().build();
 		}
-		return ResponseEntity.ok(orderRepository.findByUser(user));
+
+		try {
+			ResponseEntity<List<UserOrder>> responseEntity = ResponseEntity.ok(orderRepository.findByUser(user));
+			log.info("Order history retrieved for " + username);
+			return responseEntity;
+		}
+		catch (Exception e) {
+			String message = "Could not retrieve order history.";
+			log.error(message + e);
+			throw new CouldNotRetrieveOrderHistoryException(message);
+		}
+
 	}
 }
