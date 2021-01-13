@@ -2,6 +2,8 @@ package com.example.demo.controllers;
 
 import java.util.Optional;
 
+import com.example.demo.exceptions.PasswordConfirmationException;
+import com.example.demo.exceptions.PasswordTooShortException;
 import com.example.demo.exceptions.UserNotCreatedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,6 +39,8 @@ public class UserController {
 
 	final Logger log = LoggerFactory.getLogger(UserController.class);
 
+	final private int requiredPasswordLength = 7;
+
 	@GetMapping("/id/{id}")
 	public ResponseEntity<User> findById(@PathVariable Long id) {
 		return ResponseEntity.of(userRepository.findById(id));
@@ -56,10 +60,18 @@ public class UserController {
 		cartRepository.save(cart);
 		user.setCart(cart);
 
-		if(createUserRequest.getPassword().length() < 7 ||
-				!createUserRequest.getPassword().equals(createUserRequest.getConfirmPassword())) {
-			 log.error("Error with user password. Cannot create user{}", createUserRequest.getUsername());
-			return ResponseEntity.badRequest().build();
+		if(createUserRequest.getPassword().length() < requiredPasswordLength) {
+			String message = "Password too short! Password must be at least " + requiredPasswordLength + " characters long.";
+			PasswordTooShortException passwordTooShort = new PasswordTooShortException(message);
+			log.error(passwordTooShort.toString());
+			throw passwordTooShort;
+		}
+
+		if (!createUserRequest.getPassword().equals(createUserRequest.getConfirmPassword())) {
+			String message = "Password and Confirmation of Password do not match!";
+			PasswordConfirmationException passwordConfirmationException = new PasswordConfirmationException(message);
+			log.error(passwordConfirmationException.toString());
+			throw passwordConfirmationException;
 		}
 
 		user.setPassword(bCryptPasswordEncoder.encode(createUserRequest.getPassword()));

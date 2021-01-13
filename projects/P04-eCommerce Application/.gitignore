@@ -4,6 +4,9 @@ target/
 ### JAVA ###
 *.class
 
+### compressed files ###
+*.zip
+
 ### LOG FILES ###
 *.log
 eCommerce.log*
