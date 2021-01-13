@@ -5,6 +5,7 @@ import java.util.Optional;
 import com.example.demo.exceptions.PasswordConfirmationException;
 import com.example.demo.exceptions.PasswordTooShortException;
 import com.example.demo.exceptions.UserNotCreatedException;
+import com.example.demo.exceptions.UserNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,13 +44,29 @@ public class UserController {
 
 	@GetMapping("/id/{id}")
 	public ResponseEntity<User> findById(@PathVariable Long id) {
-		return ResponseEntity.of(userRepository.findById(id));
+		Optional<User> optionalUser = userRepository.findById(id);
+		if(optionalUser.isPresent()) {
+			return ResponseEntity.of(optionalUser);
+		}
+		else {
+			String message = "Could not find user with id: " + id;
+			UserNotFoundException userNotFoundException = new UserNotFoundException(message);
+			log.error(userNotFoundException.toString());
+			throw userNotFoundException;
+		}
 	}
 	
 	@GetMapping("/{username}")
 	public ResponseEntity<User> findByUserName(@PathVariable String username) {
 		User user = userRepository.findByUsername(username);
-		return user == null ? ResponseEntity.notFound().build() : ResponseEntity.ok(user);
+
+		if(user == null) {
+			String message = "Could not find username: " + username;
+			UserNotFoundException userNotFoundException = new UserNotFoundException(message);
+			log.error(userNotFoundException.toString());
+			throw userNotFoundException;
+		}
+		return ResponseEntity.ok(user);
 	}
 	
 	@PostMapping("/create")
