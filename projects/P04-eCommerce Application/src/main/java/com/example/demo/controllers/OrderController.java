@@ -31,7 +31,7 @@ public class OrderController {
 	private OrderRepository orderRepository;
 
 	final Logger log = LoggerFactory.getLogger(UserController.class);
-	
+
 	@PostMapping("/submit/{username}")
 	public ResponseEntity<UserOrder> submit(@PathVariable String username) {
 
@@ -45,14 +45,14 @@ public class OrderController {
 
 		UserOrder order = UserOrder.createFromCart(user.getCart());
 
-		if(order == null || order.getId() == null) {
+		if(order.getTotal() == null) {
 			String message = "Could not save order! Order does not exist.";
 			OrderDoesNotExistException orderDoesNotExistException = new OrderDoesNotExistException(message);
 			log.error(orderDoesNotExistException.toString());
 			throw orderDoesNotExistException;
 		}
 
-		if(order.getItems().size() == 0 && order.getTotal().equals(0.0)) {
+		if(order.getItems().size() == 0) {
 			String message = "Order contains no items! Cannot submit order.";
 			EmptyOrderException emptyOrderException = new EmptyOrderException(message);
 			log.error(emptyOrderException.toString());
