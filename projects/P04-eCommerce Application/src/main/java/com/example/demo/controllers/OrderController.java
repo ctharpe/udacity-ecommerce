@@ -2,8 +2,7 @@ package com.example.demo.controllers;
 
 import java.util.List;
 
-import com.example.demo.exceptions.CouldNotRetrieveOrderHistoryException;
-import com.example.demo.exceptions.CouldNotSaveOrderException;
+import com.example.demo.exceptions.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,8 +23,7 @@ import com.example.demo.model.persistence.repositories.UserRepository;
 @RestController
 @RequestMapping("/api/order")
 public class OrderController {
-	
-	
+
 	@Autowired
 	private UserRepository userRepository;
 	
@@ -34,15 +32,33 @@ public class OrderController {
 
 	final Logger log = LoggerFactory.getLogger(UserController.class);
 	
-	
 	@PostMapping("/submit/{username}")
 	public ResponseEntity<UserOrder> submit(@PathVariable String username) {
+
 		User user = userRepository.findByUsername(username);
 		if(user == null) {
-			log.error("User " + username + " not found.");
-			return ResponseEntity.notFound().build();
+			String message = "Could not submit order! Username " + username + " not found.";
+			UserNotFoundException userNotFoundException = new UserNotFoundException(message);
+			log.error(userNotFoundException.toString());
+			throw userNotFoundException;
 		}
+
 		UserOrder order = UserOrder.createFromCart(user.getCart());
+
+		if(order == null || order.getId() == null) {
+			String message = "Could not save order! Order does not exist.";
+			OrderDoesNotExistException orderDoesNotExistException = new OrderDoesNotExistException(message);
+			log.error(orderDoesNotExistException.toString());
+			throw orderDoesNotExistException;
+		}
+
+		if(order.getItems().size() == 0 && order.getTotal().equals(0.0)) {
+			String message = "Order contains no items! Cannot submit order.";
+			EmptyOrderException emptyOrderException = new EmptyOrderException(message);
+			log.error(emptyOrderException.toString());
+			throw emptyOrderException;
+		}
+
 		try {
 			orderRepository.save(order);
 		}
@@ -51,7 +67,7 @@ public class OrderController {
 			log.error(message + e);
 			throw new CouldNotSaveOrderException(message);
 		}
-		log.info("Order submitted.");
+		log.info("Order successfully submitted.");
 		return ResponseEntity.ok(order);
 	}
 	
@@ -59,8 +75,10 @@ public class OrderController {
 	public ResponseEntity<List<UserOrder>> getOrdersForUser(@PathVariable String username) {
 		User user = userRepository.findByUsername(username);
 		if(user == null) {
-			log.error("User " + username + " not found.");
-			return ResponseEntity.notFound().build();
+			String message = "Could retrieve order history! Username " + username + " not found.";
+			UserNotFoundException userNotFoundException = new UserNotFoundException(message);
+			log.error(userNotFoundException.toString());
+			throw userNotFoundException;
 		}
 
 		try {

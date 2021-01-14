@@ -78,14 +78,14 @@ public class UserController {
 		user.setCart(cart);
 
 		if(createUserRequest.getPassword().length() < requiredPasswordLength) {
-			String message = "Password too short! Password must be at least " + requiredPasswordLength + " characters long.";
+			String message = "Password too short! Password must be at least " + requiredPasswordLength + " characters long. Could not create new user!";
 			PasswordTooShortException passwordTooShort = new PasswordTooShortException(message);
 			log.error(passwordTooShort.toString());
 			throw passwordTooShort;
 		}
 
 		if (!createUserRequest.getPassword().equals(createUserRequest.getConfirmPassword())) {
-			String message = "Password and Confirmation of Password do not match!";
+			String message = "Password and Confirmation of Password do not match! Could not create new user!";
 			PasswordConfirmationException passwordConfirmationException = new PasswordConfirmationException(message);
 			log.error(passwordConfirmationException.toString());
 			throw passwordConfirmationException;
