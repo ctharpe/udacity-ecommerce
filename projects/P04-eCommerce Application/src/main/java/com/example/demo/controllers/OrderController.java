@@ -67,7 +67,7 @@ public class OrderController {
 			log.error(message + e);
 			throw new CouldNotSaveOrderException(message);
 		}
-		log.info("Order successfully submitted.");
+		log.info("Order successfully submitted for user " + username);
 		return ResponseEntity.ok(order);
 	}
 	
